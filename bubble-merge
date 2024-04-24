@@ -1,0 +1,81 @@
+import multiprocessing
+import time
+
+def merge(arr, l, m, r):
+    n1 = m - l + 1
+    n2 = r - m
+
+    L = arr[l:l + n1]
+    R = arr[m + 1:m + 1 + n2]
+
+    i = j = 0
+    k = l
+
+    while i < n1 and j < n2:
+        if L[i] <= R[j]:
+            arr[k] = L[i]
+            i += 1
+        else:
+            arr[k] = R[j]
+            j += 1
+        k += 1
+
+    while i < n1:
+        arr[k] = L[i]
+        i += 1
+        k += 1
+
+    while j < n2:
+        arr[k] = R[j]
+        j += 1
+        k += 1
+
+def parallel_bubble_sort(arr):
+    n = len(arr)
+    for i in range(n - 1):
+        for j in range(n - i - 1):
+            if arr[j] > arr[j + 1]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+
+def parallel_merge_sort(arr, l, r):
+    if l < r:
+        m = (l + r) // 2
+
+        left_process = multiprocessing.Process(target=parallel_merge_sort, args=(arr, l, m))
+        right_process = multiprocessing.Process(target=parallel_merge_sort, args=(arr, m + 1, r))
+
+        left_process.start()
+        right_process.start()
+
+        left_process.join()
+        right_process.join()
+
+        merge(arr, l, m, r)
+
+if __name__ == "__main__":
+    # Take input from the user
+    arr = list(map(int, input("Enter the space-separated array elements: ").split()))
+
+    print("Original array:")
+    print(arr)
+
+    # Clone the array for sorting, as both sorting algorithms modify the array
+    arr1 = arr.copy()
+    arr2 = arr.copy()
+
+    start_time1 = time.time()
+    parallel_bubble_sort(arr1)
+    end_time1 = time.time()
+
+    start_time2 = time.time()
+    parallel_merge_sort(arr2, 0, len(arr2) - 1)
+    end_time2 = time.time()
+
+    print("Sorted array using parallel bubble sort:")
+    print(arr1)
+    print("Time taken for parallel bubble sort:", end_time1 - start_time1)
+    print()
+
+    print("Sorted array using parallel merge sort:")
+    print(arr2)
+    print("Time taken for parallel merge sort:", end_time2 - start_time2)
